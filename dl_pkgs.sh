@@ -1,16 +1,21 @@
 #!/usr/bin/bash
 
 PROCESSORS=$(/usr/bin/getconf _NPROCESSORS_ONLN)
+DEFAULT_RELEASE="test/26_Alpha"
 
 if [ x$1 == x ]; then
     echo "No NVR file provided"
+    echo
+    echo "Usage `basename $0` <NVR file> [release]"
+    echo
+    echo "Default release: ${DEFAULT_RELEASE}"
     exit 1
 else
     nvrfile=$(realpath $1)
 fi
 
 if [ x$2 == x ]; then
-    release="test/26_Alpha"
+    release="${DEFAULT_RELEASE}"
 else
     release=$2
 fi
