@@ -20,6 +20,13 @@ else
     release=$2
 fi
 
+# Download all sources at same time
+mkdir -p repo/$release/override/source-cache
+pushd repo/$release/override/source-cache
+cat $nvrfile | xargs --max-procs=$PROCESSORS -I NVR \
+  koji download-build --arch=src NVR
+popd
+
 
 for arch in "x86_64" "i686" "armv7hl" "aarch64" "ppc64" "ppc64le" "s390x"; do
     mkdir -p repo/$release/override/$arch/os repo/$release/override/$arch/sources
@@ -27,8 +34,11 @@ for arch in "x86_64" "i686" "armv7hl" "aarch64" "ppc64" "ppc64le" "s390x"; do
     cat $nvrfile | xargs --max-procs=$PROCESSORS -I NVR \
         koji download-build --arch=noarch --arch=$arch NVR
     popd
-    pushd repo/$release/override/$arch/sources/
-    cat $nvrfile | xargs --max-procs=$PROCESSORS -I NVR \
-        koji download-build --arch=src NVR
-    popd
+    cat $nvrfile | while read NVR
+    do
+        cp -f repo/$release/override/source-cache/$NVR.src.rpm repo/$release/override/$arch/sources/
+    done
 done
+
+# Cleanup all our sources
+rm -rf repo/$release/override/source-cache
